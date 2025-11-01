@@ -3,8 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Calendar, Upload, Lock } from "lucide-react";
-import { useState } from "react";
+import { Calendar, Upload, Lock, X, FileText, Image as ImageIcon } from "lucide-react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 
 const CreateCapsule = () => {
@@ -13,10 +13,28 @@ const CreateCapsule = () => {
     message: "",
     unlockDate: "",
   });
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setSelectedFiles(prev => [...prev, ...newFiles]);
+      toast.success(`${newFiles.length} file(s) added`);
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Your time capsule has been created! (Frontend demo)");
+    toast.success(`Time capsule created with ${selectedFiles.length} file(s)! (Frontend demo)`);
   };
 
   return (
@@ -73,14 +91,67 @@ const CreateCapsule = () => {
               />
             </div>
 
-            <div className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary/50 transition-colors cursor-pointer group">
-              <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              <p className="text-muted-foreground mb-2">
-                <span className="text-primary font-medium">Click to upload</span> or drag and drop
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Photos, videos, documents (Frontend demo)
-              </p>
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                accept="image/*,video/*,.pdf,.doc,.docx,.txt"
+              />
+              
+              <div 
+                onClick={handleUploadClick}
+                className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary/50 transition-colors cursor-pointer group"
+              >
+                <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                <p className="text-muted-foreground mb-2">
+                  <span className="text-primary font-medium">Click to upload</span> or drag and drop
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Photos, videos, documents
+                </p>
+              </div>
+
+              {selectedFiles.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <Label className="text-sm text-muted-foreground">
+                    Selected files ({selectedFiles.length})
+                  </Label>
+                  <div className="space-y-2">
+                    {selectedFiles.map((file, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg group hover:bg-secondary transition-colors"
+                      >
+                        <div className="flex-shrink-0">
+                          {file.type.startsWith('image/') ? (
+                            <ImageIcon className="w-5 h-5 text-primary" />
+                          ) : (
+                            <FileText className="w-5 h-5 text-primary" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(file.size / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveFile(index)}
+                          className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex items-start gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
