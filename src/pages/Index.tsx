@@ -2,6 +2,7 @@ import Hero from "@/components/Hero";
 import Features from "@/components/Features";
 import HowItWorks from "@/components/HowItWorks";
 import CreateCapsule from "@/components/CreateCapsule";
+import CapsuleGallery from "@/components/CapsuleGallery";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -11,6 +12,7 @@ const Index = () => {
       <Features />
       <HowItWorks />
       <CreateCapsule />
+      <CapsuleGallery />
       <Footer />
     </div>
   );

@@ -32,9 +32,58 @@ const CreateCapsule = () => {
     fileInputRef.current?.click();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(`Time capsule created with ${selectedFiles.length} file(s)! (Frontend demo)`);
+    
+    // Convert files to base64 for storage (limited to prevent storage overflow)
+    const fileDataPromises = selectedFiles.slice(0, 5).map(file => {
+      return new Promise<{ name: string; type: string; size: number; data?: string }>((resolve) => {
+        if (file.size < 500000) { // Only store files smaller than 500KB
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve({
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              data: reader.result as string
+            });
+          };
+          reader.readAsDataURL(file);
+        } else {
+          resolve({
+            name: file.name,
+            type: file.type,
+            size: file.size
+          });
+        }
+      });
+    });
+
+    const fileData = await Promise.all(fileDataPromises);
+
+    // Create capsule object
+    const capsule = {
+      id: Date.now().toString(),
+      title: formData.title,
+      message: formData.message,
+      unlockDate: formData.unlockDate,
+      files: fileData,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Save to localStorage
+    const existingCapsules = JSON.parse(localStorage.getItem('timeCapsules') || '[]');
+    existingCapsules.push(capsule);
+    localStorage.setItem('timeCapsules', JSON.stringify(existingCapsules));
+
+    toast.success(`Time capsule created with ${selectedFiles.length} file(s)!`);
+    
+    // Reset form
+    setFormData({ title: "", message: "", unlockDate: "" });
+    setSelectedFiles([]);
+    
+    // Dispatch event to notify other components
+    window.dispatchEvent(new Event('capsulesUpdated'));
   };
 
   return (
