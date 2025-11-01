@@ -20,7 +20,7 @@ const CreateCapsule = () => {
   };
 
   return (
-    <section className="py-24 px-4 bg-background">
+    <section id="create-capsule" className="py-24 px-4 bg-background">
       <div className="container mx-auto max-w-4xl">
         <div className="text-center mb-12 animate-fadeIn">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
